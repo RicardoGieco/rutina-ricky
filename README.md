@@ -8,3 +8,8 @@ App instalable (PWA) con el plan de 12 semanas (5/10 al 27/12/2026).
 - Los datos (tildes, pesos, horarios) se guardan en el teléfono. En Alarmas hay copia de seguridad.
 
 App publicada: https://ricardogieco.github.io/rutina-ricky/
+
+## App de Android
+
+Cada cambio en `main` compila un `.apk` con GitHub Actions (Capacitor) y lo publica en Releases:
+https://github.com/RicardoGieco/rutina-ricky/releases/latest/download/rutina-ricky.apk

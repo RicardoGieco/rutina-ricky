@@ -890,14 +890,51 @@ function lineChart(pts,unit){
 /* ---------- Render: Alarmas ---------- */
 UI.alDow=dow(today());
 function notifState(){if(!('Notification' in window))return 'no';return Notification.permission}
+/* ---------- Alarmas nativas (app de Android) ---------- */
+const NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+const LN=NATIVE&&window.Capacitor.Plugins?window.Capacitor.Plugins.LocalNotifications:null;
+let nativeTimer=null;
+function rescheduleSoon(){if(!LN)return;clearTimeout(nativeTimer);nativeTimer=setTimeout(scheduleNative,600)}
+async function scheduleNative(){
+  if(!LN)return;
+  try{
+    let perm=await LN.checkPermissions();
+    if(perm.display!=='granted')perm=await LN.requestPermissions();
+    UI.nPerm=perm.display;if(perm.display!=='granted'){if(UI.tab==='alarmas')renderAlarmas();return}
+    try{await LN.createChannel({id:'alarmas',name:'Alarmas de la rutina',description:'Avisos de cada tarea',importance:5,visibility:1,vibration:true})}catch(e){}
+    try{const ex=await LN.checkExactNotificationSetting();UI.nExact=ex.exact_alarm}catch(e){UI.nExact=null}
+    const pend=await LN.getPending();
+    if(pend.notifications.length)await LN.cancel({notifications:pend.notifications.map(n=>({id:n.id}))});
+    const list=[];
+    for(let d=0;d<7;d++){const ref=nextDateWithDow(d);tasksFor(ref).forEach((t,i)=>{if(!t.alarm)return;const [hh,mm]=t.time.split(':').map(Number);
+      list.push({id:(d+1)*100+i,title:t.time+' · '+t.title.replace(/ · mes \d/,''),body:t.detail||'',channelId:'alarmas',schedule:{on:{weekday:d+1,hour:hh,minute:mm},allowWhileIdle:true}})})}
+    await LN.schedule({notifications:list});
+    UI.nCount=list.length;UI.nErr=null;
+  }catch(e){UI.nErr=String(e&&e.message||e)}
+  if(UI.tab==='alarmas')renderAlarmas();
+}
+function nativeAlarmCard(){
+  let h='<div class="section"><div class="section-head"><h2>Avisos</h2></div><div class="card note" style="display:flex;flex-direction:column;gap:10px">';
+  if(UI.nPerm&&UI.nPerm!=='granted')h+='<div><b>Las notificaciones están bloqueadas.</b> Permitilas en Ajustes del celular → Apps → Rutina Ricky → Notificaciones, y tocá "Reprogramar".</div>';
+  else if(UI.nErr)h+='<div><b>No se pudieron programar las alarmas.</b> '+UI.nErr.replace(/</g,'&lt;')+'</div>';
+  else if(UI.nCount!=null)h+='<div><b>'+UI.nCount+' alarmas programadas en el celular.</b> Suenan aunque la app esté cerrada, todas las semanas.</div>';
+  else h+='<div>Programando alarmas…</div>';
+  if(UI.nExact==='denied')h+='<div class="hint">Para que suenen a la hora exacta, permití "Alarmas y recordatorios" para esta app.</div><button class="btn" data-act="nExact">Permitir alarmas exactas</button>';
+  h+='<button class="btn primary" data-act="nResched">Reprogramar alarmas</button>';
+  return h+'</div></div>';
+}
 function renderAlarmas(){
   const ns=notifState();
-  let h='<div class="section"><div class="section-head"><h2>Avisos</h2></div><div class="card note" style="display:flex;flex-direction:column;gap:10px">';
+  let h=NATIVE?nativeAlarmCard():'<div class="section"><div class="section-head"><h2>Avisos</h2></div><div class="card note" style="display:flex;flex-direction:column;gap:10px">';
+  if(!NATIVE){
   if(ns==='granted')h+='<div><b>Notificaciones activadas.</b> Con la app abierta o en segundo plano te avisa a la hora de cada tarea.</div>';
   else if(ns==='denied')h+='<div><b>Las notificaciones están bloqueadas.</b> Habilitalas en los ajustes del navegador para esta app.</div>';
   else if(ns==='no')h+='<div>Este navegador no permite notificaciones acá. Instalá la app en la pantalla de inicio o usá el calendario.</div>';
   else h+='<div>Activá las notificaciones para que te avise a la hora de cada tarea.</div><button class="btn primary" data-act="notif">Activar notificaciones</button>';
+  }
+  if(!NATIVE){
   h+='<div class="hint">El celular puede frenar la app cuando no la usás. Para que las alarmas suenen siempre, cargalas en el calendario del teléfono: quedan hasta el 27 de diciembre.</div>'+(document.querySelector('link[rel=manifest]')?'<button class="btn" data-act="ics">Cargar alarmas en el calendario (.ics)</button>':'<div class="hint"><b>El archivo para el calendario se descarga desde la app instalada.</b></div>')+'</div></div>';
+  }
   h+='<div class="section"><div class="section-head"><h2>Horarios y alarmas</h2></div><div class="daychips">';
   [1,2,3,4,5,6,0].forEach(x=>{h+='<button class="daychip'+(x===UI.alDow?' on':'')+'" data-act="alDay" data-d="'+x+'">'+DOWS[x]+'</button>'});
   h+='</div><div class="card" style="padding:4px 14px">';
@@ -968,7 +1005,7 @@ document.addEventListener('click',ev=>{
   else if(a==='notif'){if('Notification' in window){try{Notification.requestPermission().then(()=>render()).catch(()=>toast('No se pudieron activar las notificaciones acá'))}catch(e){toast('No se pudieron activar las notificaciones acá')}}}
   else if(a==='ics')downloadICS();
   else if(a==='alDay'){UI.alDow=+b.dataset.d;renderAlarmas()}
-  else if(a==='alToggle'){const k=b.dataset.k;if(S.off[k])delete S.off[k];else S.off[k]=1;save();renderAlarmas()}
+  else if(a==='alToggle'){const k=b.dataset.k;if(S.off[k])delete S.off[k];else S.off[k]=1;save();renderAlarmas();rescheduleSoon()}
   else if(a==='exportData'){const txt=JSON.stringify(S);const ta=$('#backup');ta.value=txt;try{navigator.clipboard.writeText(txt).then(()=>toast('Respaldo copiado')).catch(()=>{ta.select();toast('Seleccioná y copiá el texto')})}catch(e){ta.select();toast('Seleccioná y copiá el texto')}}
   else if(a==='importData'){try{const o=JSON.parse($('#backup').value);if(!o||typeof o!=='object'||!o.checks)throw 0;S=Object.assign(DEF(),o);save();render();toast('Datos restaurados')}catch(e){toast('Ese texto no es un respaldo válido')}}
   else if(a==='resetAsk'){$('#resetBox').hidden=false}
@@ -989,13 +1026,15 @@ document.addEventListener('click',ev=>{
   else if(a==='monPrev'||a==='monNext'){const [y,m]=UI.month.split('-').map(Number);const d=new Date(y,m-1+(a==='monPrev'?-1:1),1);UI.month=d.getFullYear()+'-'+pad(d.getMonth()+1);keepScroll(renderProgreso)}
   else if(a==='dayInfo')openDayInfo(b.dataset.d);
   else if(a==='openDay'){UI.date=b.dataset.d;UI.tab='hoy';UI.gymDow=null;closeKegel();render();window.scrollTo(0,0)}
+  else if(a==='nResched'){UI.nCount=null;renderAlarmas();scheduleNative()}
+  else if(a==='nExact'){try{LN.changeExactNotificationSetting().then(()=>scheduleNative())}catch(e){}}
   else if(a==='kgDone'){setDone(UI.date,'kegel',true);closeKegel();render();toast('Kegel hecho. +10 pts')}
 });
 document.addEventListener('change',ev=>{
   const t=ev.target;
   if(t.dataset.w){const v=t.value===''?null:parseFloat(t.value.replace(',','.'));setWeight(t.dataset.w,+t.dataset.i,isNaN(v)?null:v)}
   else if(t.dataset.cardio){const ds=UI.date,k=t.dataset.k,v=parseFloat(t.value);const s=sess(ds);s.cardio[k]=v;S.cardio[t.dataset.cardio]=S.cardio[t.dataset.cardio]||{};S.cardio[t.dataset.cardio][k]=v;save()}
-  else if(t.dataset.alt){const [id,d]=t.dataset.alt.split(':');const base=TASKS.find(x=>x.id===id).times[+d];if(t.value&&t.value!==base)S.ov[t.dataset.alt]=t.value;else delete S.ov[t.dataset.alt];save();toast('Horario guardado')}
+  else if(t.dataset.alt){const [id,d]=t.dataset.alt.split(':');const base=TASKS.find(x=>x.id===id).times[+d];if(t.value&&t.value!==base)S.ov[t.dataset.alt]=t.value;else delete S.ov[t.dataset.alt];save();toast('Horario guardado');rescheduleSoon()}
   else if(t.id==='closeNote'){S.close[UI.date]=S.close[UI.date]||{};S.close[UI.date].note=t.value;save()}
   else if(t.id==='photoIn'&&t.files&&t.files[0])savePhoto(t.files[0]);
   else if(t.id==='chartEx'){UI.chartEx=t.value;renderProgreso()}
@@ -1066,6 +1105,7 @@ function notify(title,body){
   try{if(swReg)swReg.showNotification(title,{body,tag:title,icon:'icon-192.png',badge:'icon-192.png'});else new Notification(title,{body})}catch(e){}
 }
 function checkAlarms(){
+  if(NATIVE)return;
   const ds=today(),hm=nowHM();
   tasksFor(ds).forEach(t=>{const k=ds+':'+t.id;if(t.alarm&&t.time===hm&&!S.notified[k]&&!isDone(ds,t.id)){S.notified[k]=1;notify(t.time+' · '+t.title,t.detail||'');save()}});
   for(const k in S.notified)if(k<addDays(ds,-2))delete S.notified[k];
@@ -1084,8 +1124,9 @@ function confetti(){
 }
 
 /* ---------- App instalable ---------- */
-try{if('serviceWorker' in navigator&&document.querySelector('link[rel=manifest]')){navigator.serviceWorker.register('sw.js').then(r=>{swReg=r}).catch(()=>{})}}catch(e){}
+try{if(!NATIVE&&'serviceWorker' in navigator&&document.querySelector('link[rel=manifest]')){navigator.serviceWorker.register('sw.js').then(r=>{swReg=r}).catch(()=>{})}}catch(e){}
 
-render();checkAlarms();
+render();checkAlarms();scheduleNative();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&NATIVE&&UI.tab==='alarmas')renderAlarmas()});
 })();
 </script>

@@ -1,0 +1,9 @@
+{
+  "appId": "com.ricardogieco.rutina",
+  "appName": "Rutina Ricky",
+  "webDir": "www",
+  "android": { "backgroundColor": "#0D1214" },
+  "plugins": {
+    "LocalNotifications": { "iconColor": "#2246D6" }
+  }
+}
