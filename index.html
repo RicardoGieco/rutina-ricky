@@ -427,6 +427,9 @@ const WORKOUTS={
 };
 
 const WD=t=>[null,t,t,t,t,t,null];
+const GYM_DAYS=[1,2,4,5];
+const GYM=t=>[0,1,2,3,4,5,6].map(d=>GYM_DAYS.includes(d)?t:null);
+const GOAL={date:'2026-12-23',lo:106,hi:109,start:120};
 const ALL=(wd,we)=>[we,wd,wd,wd,wd,wd,we];
 const KEGEL_INFO={
   1:{time:'17:30',where:'5 min acostado boca arriba, rodillas dobladas',min:5},
@@ -434,28 +437,28 @@ const KEGEL_INFO={
   3:{time:'17:30',where:'10 min, los días de práctica',min:10}
 };
 const TASKS=[
-  {id:'desayuno',title:'Desayuno',detail:'2 huevos, café o té y sandía o frutillas',area:'comida',pts:10,times:ALL('06:00','09:00')},
+  {id:'desayuno',title:'Desayuno',detail:'2 huevos enteros o revueltos y mate',area:'comida',pts:10,times:ALL('06:00','09:00')},
   {id:'salida',title:'Salir al trabajo',detail:'Trabajo de 8:00 a 13:00',area:'estudio',pts:5,times:WD('06:50')},
+  {id:'escalera',title:'13 pisos por escalera',detail:'Al llegar al trabajo, sin ascensor y a ritmo constante',area:'cardio',pts:10,times:WD('07:40')},
   {id:'kegel',title:'Kegel inverso',area:'kegel',pts:10,times:WD('kegel'),kegel:true},
-  {id:'almuerzo',title:'Almuerzo',detail:'Pollo u otra proteína magra, ensalada con aceite de oliva, ajo y palta',area:'comida',pts:10,times:ALL('12:00','13:00')},
-  {id:'sol',title:'Sol',detail:'30 minutos al sol',area:'descanso',pts:5,times:WD('13:00')},
-  {id:'pre',title:'Pre-entreno',detail:'1 banana o un vaso de jugo de remolacha',area:'comida',pts:5,times:WD('14:00')},
-  {id:'entreno',title:'Entrenamiento',area:'fuerza',pts:30,times:WD('14:30'),gym:true},
-  {id:'merienda',title:'Merienda',detail:'1 manzana o banana y un puñado de nueces o almendras',area:'comida',pts:10,times:ALL('17:15','17:00')},
-  {id:'estudio',title:'Estudio o cursada',detail:'De 18:00 a 21:00',area:'estudio',pts:10,times:WD('18:00')},
-  {id:'cena',title:'Cena',detail:'Pescado, pollo o revuelto de verduras con papa, batata, arroz integral o quinoa',area:'comida',pts:10,times:ALL('21:00','21:00')},
+  {id:'almuerzo',title:'Almuerzo fuerte',detail:'Pechuga de pollo o cerdo (200 a 250 g) con puré de calabaza o verduras',area:'comida',pts:10,times:ALL('12:00','13:00')},
+  {id:'entreno',title:'Entrenamiento',area:'fuerza',pts:30,times:GYM('13:30'),gym:true},
+  {id:'caminata',title:'Caminata a casa · 7,5 km',detail:'A paso firme, también suma el sol del día',area:'cardio',pts:20,times:[null,'15:00','15:00','13:00','15:00','15:00',null]},
+  {id:'merienda',title:'Merienda',detail:'1 fruta: banana, manzana o pera',area:'comida',pts:10,times:ALL('16:45','17:00')},
+  {id:'estudio',title:'Estudio o cursada',detail:'De 18:00 a 20:00',area:'estudio',pts:10,times:WD('18:00')},
+  {id:'cena',title:'Cena',detail:'Verduras con pollo u otra proteína: salteado, ensalada o tarta con una porción de carne',area:'comida',pts:10,times:ALL('20:00','20:00')},
   {id:'pasos',title:'10.000 pasos',detail:'Repartidos en el día',area:'cardio',pts:20,times:[null,null,null,null,null,null,'10:00']},
   {id:'compra',title:'Compra de la semana',detail:'Con la lista de la pestaña Comidas',area:'comida',pts:5,times:[null,null,null,null,null,null,'11:00']},
   {id:'descanso',title:'Descanso completo',detail:'Hoy no se entrena: recuperar también es parte del plan',area:'descanso',pts:10,times:['10:00',null,null,null,null,null,null]},
-  {id:'cuello',title:'Rutina de cuello',detail:'Movilidad y estiramientos de cuello',area:'movilidad',pts:10,times:ALL('22:15','22:15')},
-  {id:'cierre',title:'Cerrar el día',detail:'Cómo dormiste, tu energía y tu ánimo',area:'descanso',pts:5,times:ALL('22:45','22:45'),close:true},
-  {id:'dormir',title:'A la cama',detail:'Dormir a las 23:00',area:'descanso',pts:10,times:ALL('23:00','23:00')}
+  {id:'cuello',title:'Rutina de cuello',detail:'Movilidad y estiramientos de cuello',area:'movilidad',pts:10,times:ALL('21:15','21:15')},
+  {id:'cierre',title:'Cerrar el día',detail:'Cómo dormiste, tu energía y tu ánimo',area:'descanso',pts:5,times:ALL('21:40','21:40'),close:true},
+  {id:'dormir',title:'A la cama',detail:'Dormir de 22:00 a 06:00',area:'descanso',pts:10,times:ALL('22:00','22:00')}
 ];
 const HABITS=[
-  {id:'h_fruta',t:'Fruta en desayuno y merienda'},
+  {id:'h_fruta',t:'Fruta en la merienda'},
   {id:'h_aceite',t:'Aceite de oliva y ajo en la ensalada'},
   {id:'h_azucar',t:'Sin azúcar, harinas blancas, fritos ni alcohol'},
-  {id:'h_comidas',t:'Cuatro comidas, sin saltear la cena'}
+  {id:'h_comidas',t:'Cuatro comidas, cena a las 20:00'}
 ];
 
 /* Rutinas de fuerza. u: 'lado' = kg por lado (sin la barra de 20 kg) */
@@ -530,7 +533,7 @@ function tasksFor(ds){
     let base=t.times[d];if(!base)continue;
     let title=t.title,detail=t.detail,area=t.area;
     if(t.kegel){base=KEGEL_INFO[km].time;title='Kegel inverso · mes '+km;detail=KEGEL_INFO[km].where}
-    if(t.gym){const w=WORKOUTS[d];title=d===3?w.title:'Fuerza: '+w.title.toLowerCase();detail=d===3?'Resistencia media a alta, después movilidad':'Calentamiento 10 · fuerza 75–80 · cinta 30 · vuelta a la calma 10';if(d===3)area='cardio'}
+    if(t.gym){const w=WORKOUTS[d];title=d===3?w.title:'Fuerza: '+w.title.toLowerCase();detail=d===3?'Resistencia media a alta, después movilidad':'Calentamiento 10 · fuerza 75–80 · elongación. El cardio es la caminata a casa';if(d===3)area='cardio'}
     const time=(S.ov[t.id+':'+d])||base;
     out.push({id:t.id,title,detail,area,pts:t.pts,time,gym:t.gym,kegel:t.kegel,close:t.close,alarm:!S.off[t.id+':'+d]});
   }
@@ -638,11 +641,11 @@ function lastFullSession(e){
 }
 function renderGym(){
   const ds=UI.date,dd=dow(ds);
-  if(UI.gymDow==null)UI.gymDow=WORKOUTS[dd]?dd:[1,2,3,4,5].find(x=>x>dd)||1;
+  if(UI.gymDow==null)UI.gymDow=GYM_DAYS.includes(dd)?dd:GYM_DAYS.find(x=>x>dd)||GYM_DAYS[0];
   const g=UI.gymDow,log=g===dd;
   let h=dayNav();
   h+='<div class="section"><div class="daychips">';
-  [1,2,3,4,5].forEach(x=>{h+='<button class="daychip'+(x===g?' on':'')+'" data-act="gymDay" data-d="'+x+'">'+DOWS[x]+'<small>'+WORKOUTS[x].short+'</small></button>'});
+  GYM_DAYS.forEach(x=>{h+='<button class="daychip'+(x===g?' on':'')+'" data-act="gymDay" data-d="'+x+'">'+DOWS[x]+'<small>'+WORKOUTS[x].short+'</small></button>'});
   h+='</div>';
   if(!log)h+='<div class="banner plain">Estás viendo la rutina del '+DOW[g].toLowerCase()+'. Los pesos que cambies acá quedan como referencia para la próxima sesión.</div>';
   else h+='<div class="banner"><span>Sesión del '+DOW[dd].toLowerCase()+' '+fmtShort(ds)+'. Tocá el tilde al terminar cada serie y arranca el descanso.</span></div>';
@@ -683,7 +686,7 @@ function renderGym(){
     });
     const c=log?sess(ds).cardio:{};const last=S.cardio.cinta||{};
     const wk=Math.max(1,planWeek(ds));
-    h+='<div class="card ex"><div class="ex-head"><div><div class="ex-name">3 · Cinta con inclinación</div><div class="ex-meta">30 min caminando sin trotar, siempre después de las pesas</div></div></div><div class="grid2"><div class="field"><label for="cinta-incl">Inclinación (%)</label><div class="wt"><input id="cinta-incl" type="number" inputmode="decimal" data-cardio="cinta" data-k="incl" value="'+(c.incl??last.incl??8)+'"></div></div><div class="field"><label for="cinta-vel">Velocidad (km/h)</label><div class="wt"><input id="cinta-vel" type="number" inputmode="decimal" step="0.1" data-cardio="cinta" data-k="vel" value="'+(c.vel??last.vel??5.5)+'"></div></div></div><div class="ex-note">Empezá en 8 % y subí un punto por semana si terminás entero (tope 12 %). Si rodillas o zona lumbar están cargadas, cambiala por bici. Estás en la semana '+Math.min(wk,12)+'.</div></div>';
+    h+='<div class="card ex"><div class="ex-head"><div><div class="ex-name">3 · Cinta con inclinación (opcional)</div><div class="ex-meta">Ya caminás 7,5 km a casa: hacela solo si te sobra tiempo y energía</div></div></div><div class="grid2"><div class="field"><label for="cinta-incl">Inclinación (%)</label><div class="wt"><input id="cinta-incl" type="number" inputmode="decimal" data-cardio="cinta" data-k="incl" value="'+(c.incl??last.incl??8)+'"></div></div><div class="field"><label for="cinta-vel">Velocidad (km/h)</label><div class="wt"><input id="cinta-vel" type="number" inputmode="decimal" step="0.1" data-cardio="cinta" data-k="vel" value="'+(c.vel??last.vel??5.5)+'"></div></div></div><div class="ex-note">Empezá en 8 % y subí un punto por semana si terminás entero (tope 12 %). Si rodillas o zona lumbar están cargadas, cambiala por bici. Estás en la semana '+Math.min(wk,12)+'.</div></div>';
     h+='<div class="card ex"><div class="ex-name">4 · Vuelta a la calma</div><div class="ex-meta">10 min · estiramientos suaves'+(kegelMonth(ds)===1?' ':'')+'</div></div>';
   }
   if(log){const done=isDone(ds,'entreno');h+='<button class="btn primary wide" data-act="finishGym" style="margin-top:4px">'+(done?'Sesión registrada · tocá para desmarcar':'Terminar sesión (+30 pts)')+'</button>'}
@@ -695,15 +698,14 @@ function renderGym(){
 function renderComida(){
   const ds=UI.date;
   const meals=[
-    ['Desayuno','2 huevos duros o revueltos, café o té','Sandía o frutillas. Avena integral como variante algún día'],
-    ['Almuerzo','Pechuga de pollo u otra proteína magra, ensalada de espinaca, lechuga, tomate y pepino','Aceite de oliva, ajo y palta'],
-    ['Pre','1 banana','O un vaso de jugo de remolacha'],
-    ['Merienda','1 manzana o 1 banana','Un puñado de nueces o almendras'],
-    ['Cena','Pescado (atún, salmón o merluza), pollo o revuelto de verduras','Un carbohidrato: papa mediana hervida, batata, arroz integral o quinoa']
+    ['Desayuno · 06:00','2 huevos enteros o revueltos','Con mate'],
+    ['Almuerzo · mediodía','Pechuga de pollo o cerdo, 200 a 250 g','Puré de calabaza o verduras. Es la comida fuerte, antes del gimnasio'],
+    ['Merienda · al llegar a casa','1 fruta: banana, manzana o pera','Para no llegar con hambre a la noche'],
+    ['Cena · 20:00','Verduras con pollo u otra proteína','Salteado, ensalada o tarta con una porción de carne. Cortá dos horas antes de dormir']
   ];
   let h='<div class="section"><div class="section-head"><h2>Plan de comidas</h2></div>';
   meals.forEach(m=>{h+='<div class="card meal"><div class="mt">'+m[0]+'</div><div class="mb">'+m[1]+'</div><div class="mv">'+m[2]+'</div></div>'});
-  h+='<div class="card note"><b>Proteína:</b> este menú ronda 100 a 120 g por día y tu meta es 170 a 210 g. Agrandá las porciones de pollo y pescado o sumá huevos.</div>';
+  h+='<div class="card note"><b>Proteína:</b> este menú ronda 120 a 130 g por día y tu meta es 170 a 210 g. Agrandá las porciones de pollo y pescado o sumá huevos.</div>';
   h+='<div class="card note"><b>Reducir fuerte:</b> azúcar refinada, harinas blancas (pan, pizza), fritos y alcohol.</div></div>';
   const wkKey=weekKey(today());
   if(S.shop.week!==wkKey)S.shop={week:wkKey,items:{}};
@@ -742,9 +744,9 @@ function exMaxBefore(id,before){let m=null;for(const d in S.gym){if(d>=before)co
 function weekSummary(wk){
   const td=today(),days=[];for(let i=0;i<7;i++){const d=addDays(wk,i);if(d<=td)days.push(d)}
   const end=addDays(wk,7);
-  const r={days:days.length,pts:0,ok:0,pct:0,gym:0,bici:0,kegel:0,cuello:0,pasos:false,prot:[],water:[],rates:{sleep:[],energy:[],mood:[]},records:[],tips:[]};
+  const r={days:days.length,pts:0,ok:0,pct:0,gym:0,bici:0,walk:0,kegel:0,cuello:0,pasos:false,prot:[],water:[],rates:{sleep:[],energy:[],mood:[]},records:[],tips:[]};
   days.forEach(d=>{const st=dayStats(d);r.pts+=st.done+(st.pct===100?20:0);r.pct+=st.pct;if(st.pct>=80)r.ok++;
-    const dw=dow(d);if(isDone(d,'entreno')){if(dw===3)r.bici++;else r.gym++}if(isDone(d,'kegel'))r.kegel++;if(isDone(d,'cuello'))r.cuello++;if(isDone(d,'pasos'))r.pasos=true;
+    const dw=dow(d);if(isDone(d,'entreno')){if(dw===3)r.bici++;else r.gym++}if(isDone(d,'caminata'))r.walk++;if(isDone(d,'kegel'))r.kegel++;if(isDone(d,'cuello'))r.cuello++;if(isDone(d,'pasos'))r.pasos=true;
     if(S.prot[d]&&S.prot[d].length)r.prot.push(protOf(d));if(S.water[d])r.water.push(S.water[d]);
     const c=S.close[d];if(c)RATE.forEach(([k])=>{if(c[k])r.rates[k].push(c[k])})});
   r.pct=days.length?Math.round(r.pct/days.length):0;
@@ -776,7 +778,7 @@ function summaryHTML(){
   if(!r.days){return h+'<div class="card empty">Esta semana todavía no empezó.</div></div>'}
   h+='<div class="card sum"><div class="sum-grid">';
   const cell=(v,l)=>'<div><b class="num">'+v+'</b><span>'+l+'</span></div>';
-  h+=cell(r.pct+'%','cumplimiento')+cell(r.pts,'puntos')+cell(r.ok+'/'+r.days,'días al 80 %')+cell(r.gym+'/4','fuerza')+cell(r.bici+'/1','bici')+cell(r.kegel+'/5','Kegel')+cell(r.cuello+'/'+r.days,'cuello')+cell(r.protAvg==null?'–':Math.round(r.protAvg)+' g','proteína prom.')+cell(r.waterAvg==null?'–':f(r.waterAvg),'vasos de agua')+cell(r.weight==null?'–':f(r.weight)+' kg','peso')+cell(r.wDelta==null?'–':(r.wDelta>0?'+':'')+f(r.wDelta)+' kg','vs. semana ant.')+cell(f(r.rates.sleep),'sueño prom.');
+  h+=cell(r.pct+'%','cumplimiento')+cell(r.pts,'puntos')+cell(r.ok+'/'+r.days,'días al 80 %')+cell(r.gym+'/4','fuerza')+cell(r.walk+'/5','caminatas')+cell(r.kegel+'/5','Kegel')+cell(r.cuello+'/'+r.days,'cuello')+cell(r.protAvg==null?'–':Math.round(r.protAvg)+' g','proteína prom.')+cell(r.waterAvg==null?'–':f(r.waterAvg),'vasos de agua')+cell(r.weight==null?'–':f(r.weight)+' kg','peso')+cell(r.wDelta==null?'–':(r.wDelta>0?'+':'')+f(r.wDelta)+' kg','vs. semana ant.')+cell(f(r.rates.sleep),'sueño prom.');
   h+='</div>';
   if(r.records.length)h+='<div><h3>Récords de peso</h3><ul class="sum-list">'+r.records.map(x=>'<li>'+x+'</li>').join('')+'</ul></div>';
   h+='<div><h3>Para la semana que viene</h3>'+(r.tips.length?'<ul class="sum-list">'+r.tips.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'<div class="hint">Nada para ajustar: seguí así.</div>')+'</div>';
@@ -788,13 +790,24 @@ let PHOTOS={};try{PHOTOS=JSON.parse(localStorage.getItem(PKEY))||{}}catch(e){PHO
 function bodyHTML(){
   const td=today(),b=S.body[td]||{},k=UI.bodyK||'w';
   const pts=Object.keys(S.body).sort().filter(d=>S.body[d][k]!=null).map(d=>({d,v:S.body[d][k]}));
-  let h='<div class="section"><div class="section-head"><h2>Cuerpo</h2><span class="hint">una vez por semana, en ayunas</span></div><div class="card fuel"><div class="grid2"><div class="field"><label for="bodyW">Peso (kg)</label><div class="wt"><input id="bodyW" type="number" inputmode="decimal" step="0.1" value="'+(b.w??'')+'" placeholder="–"></div></div><div class="field"><label for="bodyC">Cintura (cm)</label><div class="wt"><input id="bodyC" type="number" inputmode="decimal" step="0.5" value="'+(b.c??'')+'" placeholder="–"></div></div></div><button class="btn primary" data-act="saveBody">Guardar medidas de hoy</button></div>';
+  let h='<div class="section"><div class="section-head"><h2>Cuerpo</h2><span class="hint">una vez por semana, en ayunas</span></div>'+goalHTML()+'<div class="card fuel"><div class="grid2"><div class="field"><label for="bodyW">Peso (kg)</label><div class="wt"><input id="bodyW" type="number" inputmode="decimal" step="0.1" value="'+(b.w??'')+'" placeholder="–"></div></div><div class="field"><label for="bodyC">Cintura (cm)</label><div class="wt"><input id="bodyC" type="number" inputmode="decimal" step="0.5" value="'+(b.c??'')+'" placeholder="–"></div></div></div><button class="btn primary" data-act="saveBody">Guardar medidas de hoy</button></div>';
   h+='<div class="seg"><button class="'+(k==='w'?'on':'')+'" data-act="bodyK" data-k="w">Peso</button><button class="'+(k==='c'?'on':'')+'" data-act="bodyK" data-k="c">Cintura</button></div>';
   h+=pts.length?'<div class="card chart">'+lineChart(pts,k==='w'?'kg':'cm')+'</div>':'<div class="card empty">Cuando guardes tu '+(k==='w'?'peso':'cintura')+' vas a ver la evolución acá.</div>';
   const ph=Object.keys(PHOTOS).sort().reverse();
   h+='<div class="card fuel"><div class="fuel-row"><div><h3>Foto de progreso</h3><div class="hint">Una por semana, misma luz y misma pose. Quedan solo en este celular.</div></div></div><label class="btn" for="photoIn" style="display:grid;place-items:center">Sumar foto de hoy</label><input id="photoIn" type="file" accept="image/*" hidden>';
   if(ph.length)h+='<div class="photos">'+ph.slice(0,9).map(d=>'<button data-act="photo" data-d="'+d+'"><img src="'+PHOTOS[d]+'" alt="Foto del '+fmtShort(d)+'"><span>'+fmtShort(d)+'</span></button>').join('')+'</div>';
   return h+'</div></div>';
+}
+function goalHTML(){
+  const ws=Object.keys(S.body).sort().filter(d=>S.body[d].w!=null),td=today();
+  const start=ws.length?Math.max(S.body[ws[0]].w,GOAL.start):GOAL.start,cur=ws.length?S.body[ws[ws.length-1]].w:null;
+  const weeks=Math.max(0,(parse(GOAL.date)-parse(td))/864e5/7);
+  const pct=cur==null?0:Math.max(0,Math.min(100,Math.round((start-cur)/(start-GOAL.hi)*100)));
+  let txt;
+  if(cur==null)txt='Guardá tu peso abajo para ver cuánto te falta.';
+  else if(cur<=GOAL.hi)txt='¡Llegaste a la zona de la meta! Bajaste '+(Math.round((start-cur)*10)/10)+' kg.';
+  else{const left=Math.round((cur-GOAL.hi)*10)/10;txt='Te faltan '+left+' kg para 109'+(weeks>=1?' · unos '+(Math.round(left/weeks*10)/10)+' kg por semana':'')+'.'}
+  return '<div class="card fuel"><div class="fuel-row"><div><h3>Meta al 23 de diciembre</h3><div class="hint">'+GOAL.lo+' a '+GOAL.hi+' kg · arrancaste en '+start+' kg'+(cur!=null?' · hoy '+cur+' kg':'')+'</div></div><span class="badge num">'+pct+'%</span></div><div style="height:10px;border-radius:6px;background:var(--sunk);overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--accent)"></div></div><div class="hint">'+txt+' Mirá la tendencia de varias semanas, no el número de un día.</div></div>';
 }
 function feelHTML(){
   const td=today(),days=[];for(let i=13;i>=0;i--)days.push(addDays(td,-i));
