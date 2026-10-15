@@ -428,16 +428,16 @@ const TASKS=[
   {id:'kegel',title:'Kegel inverso',area:'kegel',pts:10,times:WD('kegel'),kegel:true},
   {id:'almuerzo',title:'Almuerzo fuerte',detail:'Pechuga de pollo o cerdo (200 a 250 g) con puré de calabaza o verduras',area:'comida',pts:10,times:ALL('12:00','13:00')},
   {id:'entreno',title:'Entrenamiento',area:'fuerza',pts:30,times:GYM('13:30'),gym:true},
-  {id:'caminata',title:'Caminata a casa · 7,5 km',detail:'A paso firme, también suma el sol del día',area:'cardio',pts:20,times:[null,'15:00','15:00','13:00','15:00','15:00',null]},
-  {id:'merienda',title:'Merienda',detail:'1 fruta: banana, manzana o pera',area:'comida',pts:10,times:ALL('16:45','17:00')},
-  {id:'estudio',title:'Estudio o cursada',detail:'De 18:00 a 20:00',area:'estudio',pts:10,times:WD('18:00')},
+  {id:'caminata',title:'Caminata a casa · 8 km',detail:'Directo del gimnasio, a paso firme. Es también tu rato de sol',area:'cardio',pts:20,times:[null,'15:00','15:00','13:00','15:00','15:00',null]},
+  {id:'merienda',title:'Merienda',detail:'1 fruta: banana, manzana o pera',area:'comida',pts:10,times:ALL('16:00','17:00')},
+  {id:'estudio',title:'Estudio o cursada',detail:'De 18:00 a 22:00, con pausa para cenar',area:'estudio',pts:10,times:WD('18:00')},
   {id:'cena',title:'Cena',detail:'Verduras con pollo u otra proteína: salteado, ensalada o tarta con una porción de carne',area:'comida',pts:10,times:ALL('20:00','20:00')},
   {id:'pasos',title:'10.000 pasos',detail:'Repartidos en el día',area:'cardio',pts:20,times:[null,null,null,null,null,null,'10:00']},
   {id:'compra',title:'Compra de la semana',detail:'Con la lista de la pestaña Comidas',area:'comida',pts:5,times:[null,null,null,null,null,null,'11:00']},
   {id:'descanso',title:'Descanso completo',detail:'Hoy no se entrena: recuperar también es parte del plan',area:'descanso',pts:10,times:['10:00',null,null,null,null,null,null]},
-  {id:'cuello',title:'Rutina de cuello',detail:'Movilidad y estiramientos de cuello',area:'movilidad',pts:10,times:ALL('21:15','21:15')},
-  {id:'cierre',title:'Cerrar el día',detail:'Cómo dormiste, tu energía y tu ánimo',area:'descanso',pts:5,times:ALL('21:40','21:40'),close:true},
-  {id:'dormir',title:'A la cama',detail:'Dormir de 22:00 a 06:00',area:'descanso',pts:10,times:ALL('22:00','22:00')}
+  {id:'cuello',title:'Rutina de cuello',detail:'Movilidad y estiramientos de cuello',area:'movilidad',pts:10,times:ALL('22:00','22:00')},
+  {id:'cierre',title:'Cerrar el día',detail:'Cómo dormiste, tu energía y tu ánimo',area:'descanso',pts:5,times:ALL('22:10','22:10'),close:true},
+  {id:'dormir',title:'A la cama',detail:'Dormir de 22:15 a 06:00',area:'descanso',pts:10,times:ALL('22:15','22:15')}
 ];
 const HABITS=[
   {id:'h_fruta',t:'Fruta en la merienda'},
@@ -671,7 +671,7 @@ function renderGym(){
     });
     const c=log?sess(ds).cardio:{};const last=S.cardio.cinta||{};
     const wk=Math.max(1,planWeek(ds));
-    h+='<div class="card ex"><div class="ex-head"><div><div class="ex-name">3 · Cinta con inclinación (opcional)</div><div class="ex-meta">Ya caminás 7,5 km a casa: hacela solo si te sobra tiempo y energía</div></div></div><div class="grid2"><div class="field"><label for="cinta-incl">Inclinación (%)</label><div class="wt"><input id="cinta-incl" type="number" inputmode="decimal" data-cardio="cinta" data-k="incl" value="'+(c.incl??last.incl??8)+'"></div></div><div class="field"><label for="cinta-vel">Velocidad (km/h)</label><div class="wt"><input id="cinta-vel" type="number" inputmode="decimal" step="0.1" data-cardio="cinta" data-k="vel" value="'+(c.vel??last.vel??5.5)+'"></div></div></div><div class="ex-note">Empezá en 8 % y subí un punto por semana si terminás entero (tope 12 %). Si rodillas o zona lumbar están cargadas, cambiala por bici. Estás en la semana '+Math.min(wk,12)+'.</div></div>';
+    h+='<div class="card ex"><div class="ex-head"><div><div class="ex-name">3 · Cinta con inclinación (opcional)</div><div class="ex-meta">Ya caminás 8 km a casa: hacela solo si te sobra tiempo y energía</div></div></div><div class="grid2"><div class="field"><label for="cinta-incl">Inclinación (%)</label><div class="wt"><input id="cinta-incl" type="number" inputmode="decimal" data-cardio="cinta" data-k="incl" value="'+(c.incl??last.incl??8)+'"></div></div><div class="field"><label for="cinta-vel">Velocidad (km/h)</label><div class="wt"><input id="cinta-vel" type="number" inputmode="decimal" step="0.1" data-cardio="cinta" data-k="vel" value="'+(c.vel??last.vel??5.5)+'"></div></div></div><div class="ex-note">Empezá en 8 % y subí un punto por semana si terminás entero (tope 12 %). Si rodillas o zona lumbar están cargadas, cambiala por bici. Estás en la semana '+Math.min(wk,12)+'.</div></div>';
     h+='<div class="card ex"><div class="ex-name">4 · Vuelta a la calma</div><div class="ex-meta">10 min · estiramientos suaves'+(kegelMonth(ds)===1?' ':'')+'</div></div>';
   }
   if(log){const done=isDone(ds,'entreno');h+='<button class="btn primary wide" data-act="finishGym" style="margin-top:4px">'+(done?'Sesión registrada · tocá para desmarcar':'Terminar sesión (+30 pts)')+'</button>'}
@@ -685,7 +685,7 @@ function renderComida(){
   const meals=[
     ['Desayuno · 06:00','2 huevos enteros o revueltos','Con mate'],
     ['Almuerzo · mediodía','Pechuga de pollo o cerdo, 200 a 250 g','Puré de calabaza o verduras. Es la comida fuerte, antes del gimnasio'],
-    ['Merienda · al llegar a casa','1 fruta: banana, manzana o pera','Para no llegar con hambre a la noche'],
+    ['Merienda · 16:00, al llegar a casa','1 fruta: banana, manzana o pera','Para no llegar con hambre a la noche'],
     ['Cena · 20:00','Verduras con pollo u otra proteína','Salteado, ensalada o tarta con una porción de carne. Cortá dos horas antes de dormir']
   ];
   let h='<div class="section"><div class="section-head"><h2>Plan de comidas</h2></div>';
